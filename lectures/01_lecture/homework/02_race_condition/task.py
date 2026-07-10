@@ -15,6 +15,7 @@
 """
 
 import threading
+import time
 
 
 # ═══════════════════════════════════════════════════════════
@@ -37,8 +38,10 @@ def increment_with_race(counter: list[int], times: int) -> None:
         - Не использовать Lock
         - Содержать искусственную задержку между чтением и записью
     """
-    # TODO: реализуйте
-    raise NotImplementedError
+    for _ in range(times):
+        current = counter[0]
+        time.sleep(0.000001)
+        counter[0] = current + 1
 
 
 # ═══════════════════════════════════════════════════════════
@@ -56,8 +59,10 @@ def increment_safe(counter: list[int], times: int, lock: threading.Lock) -> None
         - Критическая секция должна быть минимальной
           (только чтение + запись, не весь цикл)
     """
-    # TODO: реализуйте
-    raise NotImplementedError
+    for _ in range(times):
+        with lock:
+            current = counter[0]
+            counter[0] = current + 1
 
 
 # ═══════════════════════════════════════════════════════════
@@ -93,18 +98,25 @@ class BankAccount:
     """
 
     def __init__(self, initial_balance: float = 0.0) -> None:
-        self.balance = initial_balance
-        # TODO: добавьте Lock
-        raise NotImplementedError
+        self.balance = float(initial_balance)
+        self._lock = threading.Lock()
 
     def deposit(self, amount: float) -> None:
-        # TODO: реализуйте
-        raise NotImplementedError
+        if amount <= 0:
+            return
+
+        with self._lock:
+            self.balance += amount
 
     def withdraw(self, amount: float) -> None:
-        # TODO: реализуйте
-        raise NotImplementedError
+        if amount <= 0:
+            return
+
+        with self._lock:
+            if self.balance < amount:
+                raise InsufficientFundsError
+            self.balance -= amount
 
     def get_balance(self) -> float:
-        # TODO: реализуйте
-        raise NotImplementedError
+        with self._lock:
+            return self.balance
